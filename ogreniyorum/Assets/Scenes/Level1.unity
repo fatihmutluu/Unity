@@ -1697,8 +1697,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1071058407}
-        m_TargetAssemblyTypeName: ScreenScript, Assembly-CSharp
+      - m_Target: {fileID: 702143258}
+        m_TargetAssemblyTypeName: script, Assembly-CSharp
         m_MethodName: MainScreenClicked
         m_Mode: 1
         m_Arguments:
@@ -2402,7 +2402,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   defaultSprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  startingTime: 100
+  startingTime: 1
   endGameScreens: {fileID: 70046329}
   audioSources:
   - {fileID: 702143262}
@@ -2434,6 +2434,7 @@ MonoBehaviour:
   - {fileID: 1371086008}
   - {fileID: 2029830054}
   timeText: {fileID: 2129429712}
+  waitTime: 0.3
 --- !u!4 &702143259
 Transform:
   m_ObjectHideFlags: 0
@@ -2648,7 +2649,7 @@ AudioSource:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 702143257}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 30e6d8c605bd4a841832e52f6e4a513e, type: 3}
@@ -2820,8 +2821,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1071058407}
-        m_TargetAssemblyTypeName: ScreenScript, Assembly-CSharp
+      - m_Target: {fileID: 702143258}
+        m_TargetAssemblyTypeName: script, Assembly-CSharp
         m_MethodName: NextLevelClicked
         m_Mode: 1
         m_Arguments:
@@ -3338,8 +3339,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1071058407}
-        m_TargetAssemblyTypeName: ScreenScript, Assembly-CSharp
+      - m_Target: {fileID: 702143258}
+        m_TargetAssemblyTypeName: script, Assembly-CSharp
         m_MethodName: MainScreenClicked
         m_Mode: 1
         m_Arguments:
@@ -4878,8 +4879,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1071058407}
-        m_TargetAssemblyTypeName: ScreenScripts.ScreenScript, Assembly-CSharp
+      - m_Target: {fileID: 702143258}
+        m_TargetAssemblyTypeName: script, Assembly-CSharp
         m_MethodName: RestartClicked
         m_Mode: 1
         m_Arguments:

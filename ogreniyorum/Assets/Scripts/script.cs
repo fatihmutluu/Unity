@@ -4,6 +4,7 @@ using System.Threading;
 using ScreenScripts;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class script : MonoBehaviour
@@ -26,6 +27,7 @@ public class script : MonoBehaviour
     public AudioSource[] audioSources;
     public Image[] siblings;
     public TextMeshProUGUI timeText;
+    public float waitTime = 1;
     #endregion
 
     #endregion
@@ -47,10 +49,10 @@ public class script : MonoBehaviour
             audioSources[1].Play();
         else
             audioSources[2].Play();
-        StartCoroutine(WaitAndDo(1));
+        StartCoroutine(WaitAndDo(waitTime));
     }
 
-    IEnumerator WaitAndDo(int i)
+    IEnumerator WaitAndDo(float i)
     {
         yield return new WaitForSeconds(i);
 
@@ -142,4 +144,22 @@ public class script : MonoBehaviour
             endGameScreens.transform.GetChild(1).gameObject.SetActive(true);
         }
     }
+
+    #region ScreenClicks
+    public void MainScreenClicked()
+    {
+        SceneManager.LoadScene("MainScreen");
+    }
+
+    public void NextLevelClicked()
+    {
+        Debug.Log("Next Level Clicked");
+    }
+
+    public void RestartClicked()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    #endregion
 }

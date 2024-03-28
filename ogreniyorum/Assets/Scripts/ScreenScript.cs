@@ -7,30 +7,16 @@ namespace ScreenScripts
 {
     public class ScreenScript : MonoBehaviour
     {
-        public void MainScreenClicked()
+        private static GameObject instance;
+
+        private void Awake()
         {
-            SceneManager.LoadScene("MainScreen");
+            DontDestroyOnLoad(gameObject);
+
+            if (instance == null)
+                instance = gameObject;
+            else
+                Destroy(gameObject);
         }
-
-        public void NextLevelClicked()
-        {
-            Debug.Log("Next Level Clicked");
-        }
-
-        public void RestartClicked()
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        }
-
-        public void PlayClicked()
-        {
-            SceneManager.LoadScene("Level1");
-        }
-
-        // Start is called before the first frame update
-        void Start() { }
-
-        // Update is called once per frame
-        void Update() { }
     }
 }
