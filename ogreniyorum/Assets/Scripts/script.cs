@@ -1,68 +1,56 @@
 using System;
 using System.Collections;
 using System.Threading;
+using ScreenScripts;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class script : MonoBehaviour
 {
-    public Sprite defaultSprite;
-    bool isFirstClicked;
+    #region Fields
     GameObject firstButton;
     GameObject secondButton;
+    public Sprite defaultSprite;
+    public float startingTime = 10;
 
+    bool isFirstClicked;
     string firstButtonName;
     string secondButtonName;
 
+    bool win = false,
+        lose = false;
+
+    #region Public Fields
+    public GameObject endGameScreens;
     public AudioSource[] audioSources;
     public Image[] siblings;
-
-    float startingTime = 120;
     public TextMeshProUGUI timeText;
+    #endregion
 
-    public void GetButtonObject(GameObject obj)
+    #endregion
+
+    //! Fonksyionlar
+    void SiblingClickability(bool isClickable)
     {
-        if (isFirstClicked)
+        foreach (Image sibling in siblings)
         {
-            secondButton = obj;
-            secondButton.GetComponent<Image>().sprite = secondButton
-                .GetComponentInChildren<SpriteRenderer>()
-                .sprite;
-
-            firstButtonName = firstButton.GetComponent<Image>().sprite.name;
-            secondButtonName = secondButton.GetComponent<Image>().sprite.name;
-
-            foreach (Image sibling in siblings)
-            {
-                if (sibling != null)
-                    sibling.raycastTarget = false;
-            }
-            Debug.Log("ciktim");
-
-            if (firstButtonName == secondButtonName)
-                audioSources[1].Play();
-            else
-                audioSources[2].Play();
-            SecondButtonClicked();
+            if (sibling != null)
+                sibling.raycastTarget = isClickable;
         }
+    }
+
+    void SecondButtonClicked()
+    {
+        SiblingClickability(false);
+        if (firstButtonName == secondButtonName)
+            audioSources[1].Play();
         else
-        {
-            firstButton = obj;
-            firstButton.GetComponent<Image>().sprite = firstButton
-                .GetComponentInChildren<SpriteRenderer>()
-                .sprite;
-            firstButton.GetComponent<Image>().raycastTarget = false;
-            isFirstClicked = true;
-        }
+            audioSources[2].Play();
+        StartCoroutine(WaitAndDo(1));
     }
 
-    public void SecondButtonClicked()
-    {
-        StartCoroutine(Wait(1));
-    }
-
-    IEnumerator Wait(int i)
+    IEnumerator WaitAndDo(int i)
     {
         yield return new WaitForSeconds(i);
 
@@ -77,30 +65,81 @@ public class script : MonoBehaviour
             secondButton.GetComponent<Image>().sprite = defaultSprite;
         }
 
-        foreach (Image sibling in siblings)
-        {
-            if (sibling != null)
-                sibling.raycastTarget = true;
-        }
+        SiblingClickability(true);
 
         isFirstClicked = false;
         firstButton = null;
         secondButton = null;
     }
 
+    void ButtonClicked(GameObject obj)
+    {
+        obj.GetComponent<Image>().sprite = obj.GetComponentInChildren<SpriteRenderer>().sprite;
+    }
+
+    public void GetButtonObject(GameObject obj)
+    {
+        if (isFirstClicked)
+        {
+            secondButton = obj;
+            ButtonClicked(secondButton);
+
+            firstButtonName = firstButton.GetComponent<Image>().sprite.name;
+            secondButtonName = secondButton.GetComponent<Image>().sprite.name;
+
+            SecondButtonClicked();
+        }
+        else
+        {
+            firstButton = obj;
+            ButtonClicked(firstButton);
+            firstButton.GetComponent<Image>().raycastTarget = false;
+            isFirstClicked = true;
+        }
+    }
+
     // Start is called before the first frame update
     void Start()
     {
         isFirstClicked = false;
+        SiblingClickability(true);
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (startingTime > 0)
+        if (startingTime <= 0)
+        {
+            lose = true;
+        }
+
+        win = true;
+        foreach (Image sibling in siblings)
+        {
+            if (sibling.enabled == true)
+            {
+                win = false;
+                break;
+            }
+        }
+
+        if (!win && !lose)
         {
             startingTime -= Time.deltaTime;
             timeText.text = startingTime.ToString("0");
+        }
+
+        if (win)
+        {
+            audioSources[0].Stop();
+            endGameScreens.SetActive(true);
+            endGameScreens.transform.GetChild(0).gameObject.SetActive(true);
+        }
+        if (lose)
+        {
+            audioSources[0].Stop();
+            endGameScreens.SetActive(true);
+            endGameScreens.transform.GetChild(1).gameObject.SetActive(true);
         }
     }
 }
