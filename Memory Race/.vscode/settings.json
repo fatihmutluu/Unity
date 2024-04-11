@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "ogreniyorum.sln"
+    "dotnet.defaultSolution": "Memory Race.sln"
 }
