@@ -1,128 +1,109 @@
 using System;
 using System.Collections;
-using System.Threading;
-using ScreenScripts;
+using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class script : MonoBehaviour
+public class MemoryGameScript : MonoBehaviour
 {
     #region Fields
-    GameObject firstButton;
-    GameObject secondButton;
-    public Sprite defaultSprite;
-    public float startingTime = 10;
+    // Game state fields
+    private GameObject firstButton;
+    private GameObject secondButton;
+    private string firstButtonName;
+    private string secondButtonName;
+    private bool isFirstClicked;
+    private bool win = false;
+    private bool lose = false;
+    private int level = 2;
+    public float startingTime = 98f;
 
-    bool isFirstClicked;
-    string firstButtonName;
-    string secondButtonName;
-
-    bool win = false,
-        lose = false;
-
-    #region Public Fields
-    public GameObject endGameScreens;
-    public AudioSource[] audioSources;
-    public Image[] siblings;
+    // UI elements
+    private List<GameObject> siblings = new List<GameObject>();
+    public GameObject grid;
+    public GameObject exampleButton;
     public TextMeshProUGUI timeText;
-    public float waitTime = 1;
-    #endregion
+    public GameObject endGameScreens;
+    public GameObject point;
+    private int pointValue = 0;
+
+    // Audio elements
+    public AudioSource[] audioSources;
+
+    // Constants and configuration values
+    public float waitTime = 1f;
+    public float cellSizeStartingPoint = 1600f;
 
     #endregion
 
-    //! Fonksyionlar
-    void SiblingClickability(bool isClickable)
+    #region MonoBehaviour Methods
+
+    private void Awake()
     {
-        foreach (Image sibling in siblings)
+        InitializeGrid();
+    }
+
+    private void Start()
+    {
+        ConfigureGrid();
+        ResetGame();
+    }
+
+    private void Update()
+    {
+        CheckGameTime();
+
+        if (IsWinConditionMet())
         {
-            if (sibling != null)
-                sibling.raycastTarget = isClickable;
+            HandleWinState();
+        }
+        else if (IsLoseConditionMet())
+        {
+            HandleLoseState();
         }
     }
 
-    void SecondButtonClicked()
+    #endregion
+
+    #region Game State Management
+
+    private void InitializeGrid()
     {
-        SiblingClickability(false);
-        if (firstButtonName == secondButtonName)
-            audioSources[1].Play();
-        else
-            audioSources[2].Play();
-        StartCoroutine(WaitAndDo(waitTime));
-    }
+        grid.SetActive(true);
 
-    IEnumerator WaitAndDo(float i)
-    {
-        yield return new WaitForSeconds(i);
-
-        if (firstButtonName == secondButtonName)
+        for (int i = 0; i < level; i++)
         {
-            firstButton.GetComponent<Image>().enabled = false;
-            secondButton.GetComponent<Image>().enabled = false;
-        }
-        else
-        {
-            firstButton.GetComponent<Image>().sprite = defaultSprite;
-            secondButton.GetComponent<Image>().sprite = defaultSprite;
-        }
-
-        SiblingClickability(true);
-
-        isFirstClicked = false;
-        firstButton = null;
-        secondButton = null;
-    }
-
-    void ButtonClicked(GameObject obj)
-    {
-        obj.GetComponent<Image>().sprite = obj.GetComponentInChildren<SpriteRenderer>().sprite;
-    }
-
-    public void GetButtonObject(GameObject obj)
-    {
-        if (isFirstClicked)
-        {
-            secondButton = obj;
-            ButtonClicked(secondButton);
-
-            firstButtonName = firstButton.GetComponent<Image>().sprite.name;
-            secondButtonName = secondButton.GetComponent<Image>().sprite.name;
-
-            SecondButtonClicked();
-        }
-        else
-        {
-            firstButton = obj;
-            ButtonClicked(firstButton);
-            firstButton.GetComponent<Image>().raycastTarget = false;
-            isFirstClicked = true;
+            GameObject button = Instantiate(exampleButton, grid.transform);
+            ConfigureButton(button, i);
         }
     }
 
-    // Start is called before the first frame update
-    void Start()
+    private void ConfigureGrid()
+    {
+        float cellSize = cellSizeStartingPoint / Mathf.CeilToInt(MathF.Sqrt(level));
+        grid.GetComponent<GridLayoutGroup>().cellSize = new Vector2(cellSize, cellSize);
+        SetSiblingClickability(true);
+    }
+
+    private void ResetGame()
     {
         isFirstClicked = false;
-        SiblingClickability(true);
+        win = false;
+        lose = false;
     }
 
-    // Update is called once per frame
-    void Update()
+    #endregion
+
+    #region Game Logic
+
+    private void CheckGameTime()
     {
         if (startingTime <= 0)
         {
             lose = true;
-        }
-
-        win = true;
-        foreach (Image sibling in siblings)
-        {
-            if (sibling.enabled == true)
-            {
-                win = false;
-                break;
-            }
         }
 
         if (!win && !lose)
@@ -130,33 +111,204 @@ public class script : MonoBehaviour
             startingTime -= Time.deltaTime;
             timeText.text = startingTime.ToString("0");
         }
+    }
 
-        if (win)
+    private bool IsWinConditionMet()
+    {
+        win = true;
+        foreach (GameObject sibling in siblings)
         {
-            audioSources[0].Stop();
-            endGameScreens.SetActive(true);
-            endGameScreens.transform.GetChild(0).gameObject.SetActive(true);
+            if (sibling.GetComponent<Image>().enabled)
+            {
+                win = false;
+                break;
+            }
         }
-        if (lose)
+
+        return win;
+    }
+
+    private bool IsLoseConditionMet()
+    {
+        return startingTime <= 0;
+    }
+
+    private void HandleWinState()
+    {
+        ProceedToNextLevel();
+        ShuffleAndAssignPositions();
+        ResetGame();
+    }
+
+    private void HandleLoseState()
+    {
+        audioSources[0].Stop();
+        endGameScreens.SetActive(true);
+        endGameScreens.transform.GetChild(1).gameObject.SetActive(true);
+    }
+
+    #endregion
+
+    #region Button Interaction
+
+    private void ConfigureButton(GameObject button, int index)
+    {
+        button
+            .transform.GetChild(1)
+            .GetComponent<TextMeshProUGUI>()
+            .SetText(((int)(index / 2)).ToString());
+        button.name = ((int)(index / 2)).ToString();
+        siblings.Add(button);
+    }
+
+    public void OnButtonClicked(GameObject obj)
+    {
+        if (!isFirstClicked)
         {
-            audioSources[0].Stop();
-            endGameScreens.SetActive(true);
-            endGameScreens.transform.GetChild(1).gameObject.SetActive(true);
+            firstButton = obj;
+            OnFirstButtonClicked(firstButton);
+        }
+        else
+        {
+            secondButton = obj;
+            OnSecondButtonClicked(secondButton);
+            ProcessButtonClick();
         }
     }
 
-    #region ScreenClicks
-    public void MainScreenClicked()
+    private void OnFirstButtonClicked(GameObject button)
+    {
+        ToggleButton(button);
+        button.GetComponent<Button>().interactable = false;
+        isFirstClicked = true;
+    }
+
+    private void OnSecondButtonClicked(GameObject button)
+    {
+        ToggleButton(button);
+        firstButtonName = firstButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text;
+        secondButtonName = secondButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text;
+    }
+
+    private void ProcessButtonClick()
+    {
+        SetSiblingClickability(false);
+        if (firstButtonName == secondButtonName)
+        {
+            audioSources[1].Play();
+        }
+        else
+        {
+            audioSources[2].Play();
+        }
+        StartCoroutine(HandleButtonMatchResult(waitTime));
+    }
+
+    private IEnumerator HandleButtonMatchResult(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (firstButtonName == secondButtonName)
+        {
+            DisableButton(firstButton);
+            DisableButton(secondButton);
+
+            siblings.Remove(firstButton);
+            siblings.Remove(secondButton);
+            pointValue += 2;
+        }
+        else
+        {
+            ResetButton(firstButton);
+            ResetButton(secondButton);
+            pointValue -= 1;
+        }
+
+        ResetButtonState();
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private void ShuffleAndAssignPositions()
+    {
+        foreach (GameObject sibling in siblings)
+        {
+            sibling.transform.SetSiblingIndex(UnityEngine.Random.Range(0, siblings.Count));
+        }
+    }
+
+    private void SetSiblingClickability(bool isClickable)
+    {
+        foreach (GameObject sibling in siblings)
+        {
+            sibling.GetComponent<Button>().interactable = isClickable;
+        }
+    }
+
+    private void ToggleButton(GameObject obj)
+    {
+        obj.transform.GetChild(0).gameObject.SetActive(false);
+        obj.transform.GetChild(1).gameObject.SetActive(true);
+    }
+
+    private void DisableButton(GameObject button)
+    {
+        button.GetComponent<Image>().enabled = false;
+        button.transform.GetChild(0).gameObject.GetComponent<Image>().enabled = false;
+        button.transform.GetChild(1).gameObject.SetActive(false);
+    }
+
+    private void ResetButton(GameObject button)
+    {
+        button.transform.GetChild(0).gameObject.SetActive(true);
+        button.transform.GetChild(1).gameObject.SetActive(false);
+    }
+
+    private void ResetButtonState()
+    {
+        point.GetComponent<TextMeshProUGUI>().SetText(pointValue.ToString());
+        SetSiblingClickability(true);
+        isFirstClicked = false;
+        firstButton = null;
+        secondButton = null;
+    }
+
+    private void ProceedToNextLevel()
+    {
+        startingTime += level;
+        pointValue += level;
+        point.GetComponent<TextMeshProUGUI>().SetText(pointValue.ToString());
+
+        level += 2;
+        float cellSize = cellSizeStartingPoint / Mathf.CeilToInt(MathF.Sqrt(level));
+        grid.GetComponent<GridLayoutGroup>().cellSize = new Vector2(cellSize, cellSize);
+
+        siblings = new List<GameObject>();
+
+        for (int i = 0; i < grid.transform.childCount; i++)
+        {
+            Destroy(grid.transform.GetChild(i).gameObject);
+        }
+
+        for (int i = 0; i < level; i++)
+        {
+            GameObject button = Instantiate(exampleButton, grid.transform);
+            ConfigureButton(button, i);
+        }
+    }
+
+    #endregion
+
+    #region Screen Navigation
+
+    public void OnMainScreenClicked()
     {
         SceneManager.LoadScene("MainScreen");
     }
 
-    public void NextLevelClicked()
-    {
-        Debug.Log("Next Level Clicked");
-    }
-
-    public void RestartClicked()
+    public void OnRestartClicked()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
