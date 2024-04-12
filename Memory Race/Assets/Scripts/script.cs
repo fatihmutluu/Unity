@@ -144,7 +144,7 @@ public class MemoryGameScript : MonoBehaviour
     {
         audioSources[0].Stop();
         endGameScreens.SetActive(true);
-        endGameScreens.transform.GetChild(1).gameObject.SetActive(true);
+        endGameScreens.transform.GetChild(0).gameObject.SetActive(true);
     }
 
     #endregion
