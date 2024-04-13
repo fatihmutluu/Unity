@@ -110,6 +110,14 @@ public class MemoryGameScript : MonoBehaviour
         {
             startingTime -= Time.deltaTime;
             timeText.text = startingTime.ToString("0");
+            if (startingTime <= 10)
+            {
+                timeText.color = Color.red;
+            }
+            else
+            {
+                timeText.color = Color.white;
+            }
         }
     }
 
